@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="168.0" prefWidth="325.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dse.guifx_v3.controllers.build_environment.PopUpWindowController">
+   <children>
+      <Label fx:id="prompt" layoutX="37.0" layoutY="21.0" text="Enter a library function:" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0" />
+      <TextField fx:id="tfLibraryName" layoutX="127.0" layoutY="52.0" onKeyPressed="#keypressEnter" prefHeight="27.0" prefWidth="178.0" promptText="Example: malloc" AnchorPane.leftAnchor="127.0" AnchorPane.rightAnchor="20.0" />
+      <Button layoutX="128.0" layoutY="121.0" mnemonicParsing="false" onAction="#getLibraryStubs" prefWidth="70.0" text="OK" AnchorPane.rightAnchor="100.0" />
+      <Button cancelButton="true" layoutX="213.0" layoutY="121.0" mnemonicParsing="false" onAction="#cancel" prefWidth="70.0" text="Cancel" AnchorPane.rightAnchor="20.0" />
+      <TextField fx:id="tfHeader" layoutX="127.0" layoutY="84.0" onKeyPressed="#keypressEnter" prefHeight="27.0" prefWidth="178.0" promptText="Example: stdlib.h" />
+      <Label fx:id="prompt1" layoutX="21.0" layoutY="57.0" text="Library name" />
+      <Label fx:id="prompt11" layoutX="21.0" layoutY="89.0" text="Header name" />
+   </children>
+</AnchorPane>

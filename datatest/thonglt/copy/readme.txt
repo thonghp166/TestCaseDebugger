@@ -1,0 +1,1 @@
+mac-osx: goto Algorithm dir, run 'make'

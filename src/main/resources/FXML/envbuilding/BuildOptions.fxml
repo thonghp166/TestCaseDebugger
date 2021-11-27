@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="520.0" prefWidth="570.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dse.guifx_v3.controllers.build_environment.BuildOptionsController">
+   <children>
+      <AnchorPane layoutX="18.0" layoutY="14.0" prefHeight="51.0" prefWidth="550.0" style="-fx-border-color: black; -fx-border-width: 0.2;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <children>
+            <Label layoutX="25.0" layoutY="17.0" text="Coverage type:" AnchorPane.leftAnchor="20.0" />
+            <ComboBox fx:id="cbCoverageType" layoutX="138.0" layoutY="13.0" prefHeight="27.0" prefWidth="414.0" promptText="Choose coverage type" AnchorPane.rightAnchor="20.0" />
+         </children>
+      </AnchorPane>
+      <AnchorPane layoutX="10.0" layoutY="69.0" prefHeight="51.0" prefWidth="550.0" style="-fx-border-color: black; -fx-border-width: 0.2;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
+         <children>
+            <CheckBox fx:id="chbWhitebox" layoutX="14.0" layoutY="17.0" mnemonicParsing="false" text="Whitebox" AnchorPane.leftAnchor="20.0" />
+         </children>
+      </AnchorPane>
+<!--      <AnchorPane layoutX="10.0" layoutY="139.0" prefHeight="75.0" prefWidth="550.0" style="-fx-border-color: black; -fx-border-width: 0.2;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">-->
+<!--         <children>-->
+<!--            <Button fx:id="bLoad" disable="true" layoutX="30.0" layoutY="25.0" mnemonicParsing="false" onAction="#loadFromRepository" text="Load" AnchorPane.leftAnchor="30.0" />-->
+<!--         </children>-->
+<!--      </AnchorPane>-->
+<!--      <AnchorPane layoutX="27.0" layoutY="131.0" prefHeight="17.0" prefWidth="443.0" style="-fx-background-color: f4f4f4;" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="330.0" />-->
+<!--      <CheckBox fx:id="chbUseBuildSettingsFromRepository" layoutX="27.0" layoutY="131.0" mnemonicParsing="false" onAction="#useBuildSettingsFromRepository" prefHeight="17.0" prefWidth="209.0" style="-fx-background-color: f4f4f4;" text="Use build settings from repository:" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="330.0" />-->
+   </children>
+</AnchorPane>

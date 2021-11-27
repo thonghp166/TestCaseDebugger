@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.212" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dse.guifx_v3.controllers.CoverageViewTabController">
+   <children>
+      <TabPane layoutX="79.0" layoutY="27.0" prefHeight="200.0" prefWidth="200.0" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <tabs>
+          <Tab text="Coverage Tab 1" fx:id="tCoverageTab1">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="399.0" prefWidth="600.0">
+                     <children>
+                        <HBox layoutX="22.0" layoutY="-36.0" prefHeight="32.0" prefWidth="600.0" AnchorPane.bottomAnchor="435.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label prefHeight="30.0" prefWidth="120.0" text="Coverage" HBox.hgrow="ALWAYS">
+                                 <padding>
+                                    <Insets left="20.0" right="10.0" />
+                                 </padding>
+                              </Label>
+                              <ProgressBar fx:id="pBCoverageProgress" prefHeight="30.0" prefWidth="200.0" progress="0.0">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                                 <padding>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </padding>
+                              </ProgressBar>
+                              <Label fx:id="lbPercentage" prefHeight="30.0" text="0%">
+                                 <padding>
+                                    <Insets left="10.0" />
+                                 </padding>
+                              </Label>
+                              <Label fx:id="lProgressDetail" layoutX="330.0" layoutY="10.0" prefHeight="30.0" prefWidth="100.0" text="0/0">
+                                 <padding>
+                                    <Insets left="10.0" />
+                                 </padding>
+                              </Label>
+                           </children>
+                        </HBox>
+                        <ScrollPane fx:id="spCoverage" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0" />
+                     </children>
+                  </AnchorPane>
+               </content>
+          </Tab>
+            <Tab text="Coverage Tab 2" fx:id="tCoverageTab2">
+                <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="399.0" prefWidth="600.0">
+                        <children>
+                            <HBox layoutX="22.0" layoutY="-36.0" prefHeight="32.0" prefWidth="600.0" AnchorPane.bottomAnchor="435.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <children>
+                                    <Label prefHeight="30.0" prefWidth="120.0" text="Coverage" HBox.hgrow="ALWAYS">
+                                        <padding>
+                                            <Insets left="20.0" right="10.0" />
+                                        </padding>
+                                    </Label>
+                                    <ProgressBar fx:id="pBCoverageProgressInTab2" prefHeight="30.0" prefWidth="200.0" progress="0.0">
+                                        <HBox.margin>
+                                            <Insets />
+                                        </HBox.margin>
+                                        <padding>
+                                            <Insets bottom="5.0" top="5.0" />
+                                        </padding>
+                                    </ProgressBar>
+                                    <Label fx:id="lbPercentageInTab2" prefHeight="30.0" text="0%">
+                                        <padding>
+                                            <Insets left="10.0" />
+                                        </padding>
+                                    </Label>
+                                    <Label fx:id="lProgressDetailInTab2" layoutX="330.0" layoutY="10.0" prefHeight="30.0" prefWidth="100.0" text="0/0">
+                                        <padding>
+                                            <Insets left="10.0" />
+                                        </padding>
+                                    </Label>
+                                </children>
+                            </HBox>
+                            <ScrollPane fx:id="spCoverageInTab2" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0" />
+                        </children>
+                    </AnchorPane>
+                </content>
+            </Tab>
+          <Tab text="Matrix">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+            </content>
+          </Tab>
+            <Tab text="Basis Paths">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+               </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</AnchorPane>

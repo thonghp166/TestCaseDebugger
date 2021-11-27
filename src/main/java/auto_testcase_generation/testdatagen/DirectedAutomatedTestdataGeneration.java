@@ -1,0 +1,636 @@
+package auto_testcase_generation.testdatagen;
+
+import auto_testcase_generation.cfg.ICFG;
+import auto_testcase_generation.cfg.object.BranchInCFG;
+import auto_testcase_generation.cfg.object.ConditionCfgNode;
+import auto_testcase_generation.cfg.object.ICfgNode;
+import auto_testcase_generation.cfg.testpath.StaticSolutionGeneration;
+import auto_testcase_generation.testdatagen.se.ISymbolicExecution;
+import auto_testcase_generation.testdatagen.se.Parameter;
+import auto_testcase_generation.testdatagen.se.PathConstraints;
+import auto_testcase_generation.testdatagen.se.SymbolicExecution;
+import auto_testcase_generation.testdatagen.se.solver.SmtLibGeneration;
+import auto_testcase_generation.testdatagen.testdatainit.BasicTypeRandom;
+import com.dse.config.AkaConfig;
+import com.dse.config.FunctionConfig;
+import com.dse.config.WorkspaceConfig;
+import com.dse.coverage.AbstractCoverageManager;
+import com.dse.coverage.CoverageDataObject;
+import com.dse.coverage.SourcecodeCoverageComputation;
+import com.dse.environment.object.EnviroCoverageTypeNode;
+import com.dse.guifx_v3.controllers.TestCasesExecutionTabController;
+import com.dse.guifx_v3.controllers.TestCasesNavigatorController;
+import com.dse.guifx_v3.helps.*;
+import com.dse.guifx_v3.objects.TestCaseExecutionDataNode;
+import com.dse.guifx_v3.objects.TestCasesTreeItem;
+import com.dse.parser.object.*;
+import com.dse.testcase_manager.AbstractTestCase;
+import com.dse.testcase_manager.ITestCase;
+import com.dse.testcase_manager.TestCase;
+import com.dse.testcase_manager.TestCaseManager;
+import com.dse.testdata.gen.module.SimpleTreeDisplayer;
+import com.dse.testdata.object.RootDataNode;
+import com.dse.thread.AkaThread;
+import com.dse.thread.AkaThreadManager;
+import com.dse.util.AkaLogger;
+import com.dse.util.Utils;
+import javafx.collections.ObservableList;
+import org.apache.commons.math3.random.RandomDataGenerator;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.Executors;
+
+public class DirectedAutomatedTestdataGeneration extends AbstractAutomatedTestdataGeneration {
+    private final static AkaLogger logger = AkaLogger.get(DirectedAutomatedTestdataGeneration.class);
+
+    public DirectedAutomatedTestdataGeneration(ICommonFunctionNode fn, String coverageType) {
+        super(fn);
+        this.coverageType = coverageType;
+    }
+
+    public void generateTestdata(ICommonFunctionNode fn) throws Exception {
+        logger.debug("[" + Thread.currentThread().getName() + "] " + "Generating test data for function " + fn.getName());
+        logger.debug("[" + Thread.currentThread().getName() + "] " + "Automated test data generation strategy: Directed-Dijkstra");
+
+        if (fn.getFunctionConfig() == null) {
+            FunctionConfig functionConfig = new WorkspaceConfig().fromJson().getDefaultFunctionConfig();
+            functionConfig.setFunctionNode(fn);
+            fn.setFunctionConfig(functionConfig);
+            functionConfig.createBoundOfArgument(functionConfig, fn);
+        }
+
+        final long MAX_ITERATON = fn.getFunctionConfig().getTheMaximumNumberOfIterations(); // may change to any value
+        logger.debug("[" + Thread.currentThread().getName() + "] " + "Maximum number of iterations = " + MAX_ITERATON);
+
+        // clear cache before generate testcase
+        TestCasesTreeItem treeItem = CacheHelper.getFunctionToTreeItemMap().get(fn);
+        if (CacheHelper.getTreeItemToListTestCasesMap().get(treeItem) != null)
+            CacheHelper.getTreeItemToListTestCasesMap().get(treeItem).clear();
+
+        //
+        if (fn.isTemplate() || fn instanceof MacroFunctionNode) {
+            if (this.allPrototypes == null || this.allPrototypes.size() == 0)
+                this.allPrototypes = getAllPrototypesOfTemplateFunction(fn);
+            if (this.allPrototypes == null || this.allPrototypes.size() == 0)
+                return;
+
+            for (TestCase prototype : allPrototypes)
+//                start(MAX_ITERATON, prototype);
+                start();
+        } else {
+//            start(MAX_ITERATON, null);
+            start();
+        }
+
+        // DO NOT RUN PARALLEL
+//        Runnable runnable = new Runnable() {
+//            @Override
+//            public void run() {
+////                while (true) {
+//                List<TestCase> testCases = new ArrayList<>();
+//
+//                while (!execTasks.isEmpty()) {
+//                    try {
+//                        Thread.sleep(100);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+////                    System.out.println("checking " + execTasks.size());
+//                }
+//
+//                for (AutoGeneratedTestCaseExecTask task : functionExecThread.getTestCaseExecTask()) {
+//                    TestCase testCase = task.getTestCase();
+//                    testCases.add(testCase);
+//                }
+//
+//                Platform.runLater(() -> UIController.viewCoverageOfMultipleTestcases(fn.getName(), testCases));
+////                }
+//            }
+//        };
+//
+//        new Thread(runnable).start();
+
+//        Platform.runLater(runnable);
+    }
+
+    /**
+     * Generate test data
+     */
+    protected void start() {
+//        this.testCases = findAllExistingTestcase(this.fn);
+        this.testCases = TestCaseManager.getTestCasesByFunction(this.fn);
+        long MAX_TESTCASES = fn.getFunctionConfig().getTheMaximumNumberOfIterations();
+        for (long i = 0; i < MAX_TESTCASES; i++) {
+            logger.debug("Num of existing test cases = " + this.testCases.size());
+            boolean maxiCov = generateDirectly(this.testCases, this.fn, coverageType);
+            TestCasesNavigatorController.getInstance().refreshNavigatorTreeFromAnotherThread();
+            if (maxiCov) {
+                break;
+            }
+        }
+
+        // view coverage of the function with all test cases (old test cases and new test cases)
+        UIController.viewCoverageOfMultipleTestcasesFromAnotherThread(this.fn.getName(),
+                TestCaseManager.getTestCasesByFunction(this.fn));
+    }
+
+    public boolean generateDirectly(List<TestCase> testCases, ICommonFunctionNode functionNode, String cov) {
+        logger.debug("Size of test cases = " + testCases.size());
+        String allTestpaths = "";
+        for (TestCase testCase : testCases)
+            if (testCase.getTestPathFile() != null && new File(testCase.getTestPathFile()).exists())
+                allTestpaths += Utils.readFileContent(testCase.getTestPathFile()) + "\n";
+
+        // coverage
+        ICFG currentCFG = null;
+        if (allTestpaths.length() > 0) {
+            ISourcecodeFileNode sourcecodeNode = Utils.getSourcecodeFile(functionNode);
+            SourcecodeCoverageComputation sourcecodeCoverageComputation = new SourcecodeCoverageComputation();
+            sourcecodeCoverageComputation.setCoverage(cov);
+            sourcecodeCoverageComputation.setConsideredSourcecodeNode(sourcecodeNode);
+            sourcecodeCoverageComputation.setTestpathContent(allTestpaths);
+            sourcecodeCoverageComputation.compute();
+
+            List<ICFG> CFGs = sourcecodeCoverageComputation.getAllCFG();
+            for (ICFG cfg : CFGs) {
+                if (cfg.getFunctionNode().getAbsolutePath().equals(fn.getAbsolutePath())) {
+                    currentCFG = cfg;
+                    break;
+                }
+            }
+        } else {
+            try {
+                if (functionNode instanceof MacroFunctionNode) {
+                    IFunctionNode tmpFunctionNode = ((MacroFunctionNode) functionNode).getCorrespondingFunctionNode();
+                    currentCFG = Utils.createCFG(tmpFunctionNode, cov);
+                    currentCFG.setFunctionNode(tmpFunctionNode);
+                } else if (functionNode instanceof AbstractFunctionNode) {
+                    currentCFG = Utils.createCFG((IFunctionNode) functionNode, cov);
+                    currentCFG.setFunctionNode((IFunctionNode) functionNode);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (currentCFG != null) {
+            List<ICfgNode> shortestTestpath = getShortestPathByCoverage(currentCFG, cov);
+
+            if (maximizeCov)
+                return true;
+            else if (shortestTestpath.size() == 0)
+                return false;
+            else
+                return solve(shortestTestpath, functionNode, testCases);
+        }
+        return false;
+    }
+
+    protected boolean solve(List<ICfgNode> shortestTestpath, ICommonFunctionNode functionNode, List<TestCase> testCases) {
+        /**
+         * Get arguments + global variables
+         */
+        Parameter paramaters = new Parameter();
+        List<IVariableNode> globalVars = fn.getArguments();
+        for (INode params : globalVars)
+            paramaters.add(params);
+        logger.debug("List of params: " + globalVars);
+
+        try {
+            ISymbolicExecution se = new SymbolicExecution(shortestTestpath, paramaters, (IFunctionNode) fn);
+            logger.debug("constraints=\n" + se.getConstraints());
+
+            // smt-lib
+            String constraintFile = new WorkspaceConfig().fromJson().getConstraintFolder()
+                    + File.separator + new RandomDataGenerator().nextInt(0, 9999) + ".smt2";
+            logger.debug("Constraint file: " + constraintFile);
+            PathConstraints constraints = new PathConstraints();
+            constraints.addAll((PathConstraints) se.getConstraints());
+            SmtLibGeneration smt = new SmtLibGeneration(paramaters, constraints, functionNode);
+            smt.generate();
+            Utils.writeContentToFile(smt.getSmtLibContent(), constraintFile);
+//            logger.debug("SMT-Lib: " + smt.getSmtLibContent());
+
+            // solve
+            logger.debug("Calling solver z3");
+            String z3Path = new AkaConfig().fromJson().getZ3Path();
+            if (new File(z3Path).exists()) {
+                StaticSolutionGeneration solver = new StaticSolutionGeneration();
+                solver.setConstraintsFile(constraintFile);
+                solver.setZ3SolverPath(z3Path);
+                String theNextTestdata = solver.solve(constraints, (IFunctionNode) fn);
+                logger.debug("the next test data = " + theNextTestdata);
+
+                if (theNextTestdata != null && theNextTestdata.length() > 0) {
+                    // execute
+                    TestcaseExecution executor = new TestcaseExecution();
+                    executor.setFunction(fn);
+                    executor.setMode(TestcaseExecution.IN_AUTOMATED_TESTDATA_GENERATION_MODE);
+                    TestCase testCase = null;
+                    while (testCase == null) {
+                        final String nameTc = AbstractTestCase.removeSpecialCharacter(fn.getSimpleName() + ".directed." + new RandomDataGenerator().nextInt(0, 9999));
+                        testCase = TestCaseManager.createTestCase(nameTc, fn);
+                    }
+                    testCase.updateToTestCasesNavigatorTree();
+                    TestCasesNavigatorController.getInstance().refreshNavigatorTreeFromAnotherThread();
+                    if (iterateDirectly(testCase, executor, fn, theNextTestdata)) {
+                        testCases.add(testCase);
+                    }
+
+                    return false;
+                }
+            } else
+                throw new Exception("Z3 path " + z3Path + " does not exist");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    protected List<ICfgNode> getShortestPathByCoverage(ICFG currentCFG, String coverageType) {
+        currentCFG.setIdforAllNodes();
+
+        switch (coverageType) {
+            case EnviroCoverageTypeNode.STATEMENT: {
+                logger.debug("Visited stm = " + currentCFG.getVisitedStatements().size());
+                int nStm = currentCFG.getVisitedStatements().size() + currentCFG.getUnvisitedStatements().size();
+                logger.debug("Total stm = " + nStm);
+
+                if (currentCFG.getUnvisitedStatements().size() == 0) {
+                    maximizeCov = true;
+                    return new ArrayList<>();
+                } else {
+                    ICfgNode unvisitedInstructions = currentCFG.getUnvisitedStatements().get(
+                            new BasicTypeRandom().generateInt(0, currentCFG.getUnvisitedStatements().size() - 1));
+                    logger.debug("Choose unvisited stm \"" + unvisitedInstructions + "\"");
+
+                    // find a shortest test path through unvisited instructions
+                    List<ICfgNode> shortestTestpath = findShortestTestpath(unvisitedInstructions, currentCFG);
+                    logger.debug("Shortest test path: " + shortestTestpath);
+
+                    return shortestTestpath;
+                }
+            }
+            case EnviroCoverageTypeNode.BRANCH:
+            case EnviroCoverageTypeNode.MCDC: {
+                logger.debug("Visited branches = " + currentCFG.getVisitedBranches().size());
+                int nStm = currentCFG.getVisitedBranches().size() + currentCFG.getUnvisitedBranches().size();
+                logger.debug("Total branches = " + nStm);
+
+                if (currentCFG.getUnvisitedBranches().size() == 0) {
+                    maximizeCov = true;
+                    return new ArrayList<>();
+                } else {
+                    BranchInCFG selectedBranch = currentCFG.getUnvisitedBranches().get(
+                            new BasicTypeRandom().generateInt(0, currentCFG.getUnvisitedBranches().size() - 1));
+                    ICfgNode unvisitedInstructions = selectedBranch.getEnd();
+                    logger.debug("Choose unvisited branches \"" + selectedBranch.getStart() + "\" -> \"" + selectedBranch.getEnd() + "\"");
+
+                    // find a shortest test path through unvisited instructions
+                    List<ICfgNode> shortestTestpath = findShortestTestpath(unvisitedInstructions, currentCFG);
+                    logger.debug("Shortest test path: " + shortestTestpath);
+
+                    return shortestTestpath;
+                }
+            }
+
+            case EnviroCoverageTypeNode.STATEMENT_AND_BRANCH: {
+                // ignore
+                break;
+            }
+            case EnviroCoverageTypeNode.STATEMENT_AND_MCDC: {
+                // ignore
+                break;
+            }
+            case EnviroCoverageTypeNode.BASIS_PATH: {
+                // ignore
+                break;
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    protected boolean iterateDirectly(TestCase testCase, TestcaseExecution executor, ICommonFunctionNode fn, String theNextTestdata) {
+        int iteration = 99999;
+        logger.debug("Convert to standard format");
+        ValueToTestcaseConverter_DefinedSize converter = new ValueToTestcaseConverter_DefinedSize(theNextTestdata, fn);
+        List<RandomValue> randomValues = converter.convert();
+        logger.debug("Standard format = " + randomValues);
+        RootDataNode root = testCase.getRootDataNode();
+
+        // generate random value for instance
+        try {
+            logger.debug("recursiveExpandUutBranch");
+            recursiveExpandUutBranch(root.getRoot(), randomValues);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            logger.debug(new SimpleTreeDisplayer().toString(root));
+
+            String additionalHeaders = "";
+            executeTestCase(testCase, executor, additionalHeaders);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void executeTestCase(TestCase testCase, TestcaseExecution executor, String additionalHeaders) {
+        try {
+            testCase.setStatus(TestCase.STATUS_EXECUTING);
+            TestCasesNavigatorController.getInstance().refreshNavigatorTreeFromAnotherThread();
+
+            testCase.setAdditionalHeaders(additionalHeaders);
+
+            String coverage = Environment.getInstance().getTypeofCoverage();
+
+            // add and initialize corresponding TestCaseExecutionDataNode
+            ICommonFunctionNode functionNode = testCase.getFunctionNode();
+            TCExecutionDetailLogger.addTestCase(functionNode, testCase);
+            TestCaseExecutionDataNode executionDataNode = TCExecutionDetailLogger.getExecutionDataNodeByTestCase(testCase);
+            TCExecutionDetailLogger.logDetailOfTestCase(testCase, "Name: " + testCase.getName());
+            String value = testCase.getRootDataNode().getRoot().getInputForGoogleTest();
+            TCExecutionDetailLogger.logDetailOfTestCase(testCase, "Value: " + value);
+            executionDataNode.setValue(value);
+
+            // Execute random values
+            executor.setTestCase(testCase);
+            executor.execute();
+
+            // export highlighted source code and coverage to file
+            AbstractCoverageManager.exportCoveragesOfTestCaseToFile(testCase, coverage);
+
+            // save test case to file
+            testCase.setPathDefault();
+            TestCaseManager.exportBasicTestCaseToFile(testCase);
+            logger.debug("[" + Thread.currentThread().getName() + "] " + "Save the testcase " + testCase.getName() + " to file " + testCase.getPath());
+
+            // read coverage information from file to display on GUI
+            List<TestCase> testcases = new ArrayList<>();
+            testcases.add(testCase);
+
+            switch (coverage) {
+                case EnviroCoverageTypeNode.STATEMENT:
+                case EnviroCoverageTypeNode.BRANCH:
+                case EnviroCoverageTypeNode.BASIS_PATH:
+                case EnviroCoverageTypeNode.MCDC: {
+                    CoverageDataObject coverageData = AbstractCoverageManager
+                            .getCoverageOfMultiTestCaseAtSourcecodeFileLevel(testcases, coverage);
+                    double cov = Utils.round(coverageData.getVisited() * 1.0f / coverageData.getTotal() * 100, 4);
+                    String msg = coverage + " cov: " + cov + "%";
+                    TCExecutionDetailLogger.logDetailOfTestCase(testCase, msg);
+                    executionDataNode.setCoverage(msg);
+                    break;
+                }
+                case EnviroCoverageTypeNode.STATEMENT_AND_BRANCH: {
+                    String msg = "";
+                    // stm cov
+                    CoverageDataObject stmCovData = AbstractCoverageManager
+                            .getCoverageOfMultiTestCaseAtSourcecodeFileLevel(testcases, EnviroCoverageTypeNode.STATEMENT);
+                    double stmCov = Utils.round(stmCovData.getVisited() * 1.0f / stmCovData.getTotal() * 100, 4);
+                    msg = EnviroCoverageTypeNode.STATEMENT + " cov: " + stmCov + "%; ";
+
+                    // branch cov
+                    CoverageDataObject branchCovData = AbstractCoverageManager
+                            .getCoverageOfMultiTestCaseAtSourcecodeFileLevel(testcases, EnviroCoverageTypeNode.BRANCH);
+                    double branchCov = Utils.round(branchCovData.getVisited() * 1.0f / branchCovData.getTotal() * 100, 4);
+                    msg += EnviroCoverageTypeNode.BRANCH + " cov: " + branchCov + "%";
+
+                    TCExecutionDetailLogger.logDetailOfTestCase(testCase, msg);
+                    executionDataNode.setCoverage(msg);
+                    break;
+                }
+                case EnviroCoverageTypeNode.STATEMENT_AND_MCDC: {
+                    String msg = "";
+                    // stm coverage
+                    CoverageDataObject stmCovData = AbstractCoverageManager
+                            .getCoverageOfMultiTestCaseAtSourcecodeFileLevel(testcases, EnviroCoverageTypeNode.STATEMENT);
+                    double stmCov = Utils.round(stmCovData.getVisited() * 1.0f / stmCovData.getTotal() * 100, 4);
+                    msg = EnviroCoverageTypeNode.STATEMENT + " cov: " + stmCov + "%; ";
+
+                    // mcdc coverage
+                    CoverageDataObject branchCovData = AbstractCoverageManager
+                            .getCoverageOfMultiTestCaseAtSourcecodeFileLevel(testcases, EnviroCoverageTypeNode.MCDC);
+                    double mcdcCov = Utils.round(branchCovData.getVisited() * 1.0f / branchCovData.getTotal() * 100, 4);
+                    msg += EnviroCoverageTypeNode.MCDC + " cov: " + mcdcCov + "%";
+
+                    TCExecutionDetailLogger.logDetailOfTestCase(testCase, msg);
+                    executionDataNode.setCoverage(msg);
+                    break;
+                }
+            }
+
+            // display on Execution View
+            TestCasesExecutionTabController testCasesExecutionTabController = TCExecutionDetailLogger.getTCExecTabControllerByFunction(functionNode);
+            if (testCasesExecutionTabController != null) {
+                ObservableList<TestCaseExecutionDataNode> data = testCasesExecutionTabController.getData();
+                executionDataNode.setId(data.size());
+                data.add(executionDataNode);
+            }
+
+            testCase.setStatus(TestCase.STATUS_SUCCESS);
+            // update testcase on disk
+            TestCaseManager.exportBasicTestCaseToFile(testCase);
+            // export coverage of testcase to file
+            AbstractCoverageManager.exportCoveragesOfTestCaseToFile(testCase, Environment.getInstance().getTypeofCoverage());
+            // save to tst file and navigator tree
+//            testCase.updateToTestCasesNavigatorTree();
+            TestCasesNavigatorController.getInstance().refreshNavigatorTreeFromAnotherThread();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String toDescription(ICfgNode node) {
+        return String.format("%s(id = %s)", node.getContent(), node.getId());
+    }
+
+    public static List<ICfgNode> findShortestTestpath(ICfgNode target, ICFG currentCFG) {
+        List<ICfgNode> shortestPath = new ArrayList<>();
+        Map<String, ICfgNode> mapping = new HashMap<>();
+
+        Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+
+        for (ICfgNode node : currentCFG.getAllNodes()) {
+            String name = toDescription(node);
+            graph.addVertex(name);
+
+            mapping.put(name, node);
+        }
+
+        for (ICfgNode node : currentCFG.getAllNodes()) {
+            if (node.getTrueNode() != null && node.getFalseNode() != null) {
+                if (!node.getTrueNode().equals(node.getFalseNode())) {
+                    graph.addEdge(toDescription(node), toDescription(node.getTrueNode()));
+                    graph.addEdge(toDescription(node), toDescription(node.getFalseNode()));
+                } else
+                    graph.addEdge(toDescription(node), toDescription(node.getFalseNode()));
+            } else if (node.getTrueNode() != null) {
+                graph.addEdge(toDescription(node), toDescription(node.getTrueNode()));
+            } else if (node.getFalseNode() != null) {
+                graph.addEdge(toDescription(node), toDescription(node.getFalseNode()));
+            }
+        }
+
+        // Find shortest paths
+        logger.debug("Shortest path from begin node of CFG to " + target + " :");
+        DijkstraShortestPath dijkstraAlg = new DijkstraShortestPath<>(graph);
+        ICfgNode beginNode = currentCFG.getBeginNode();
+        ShortestPathAlgorithm.SingleSourcePaths<String, DefaultEdge> iPaths = dijkstraAlg.getPaths(toDescription(beginNode));
+        org.jgrapht.GraphPath<String, DefaultEdge> shortestTestPath = iPaths.getPath(toDescription(target));
+
+        for (String str : shortestTestPath.getVertexList()) {
+            ICfgNode n = mapping.get(str);
+            shortestPath.add(n);
+        }
+
+        // Normalize path
+        List<ICfgNode> normalizedShortestPath = new ArrayList<>();
+        for (int i = 0; i < shortestPath.size(); i++) {
+            ICfgNode n = shortestPath.get(i);
+            if (n instanceof ConditionCfgNode) {
+                if (i + 1 < shortestPath.size()) {
+                    ICfgNode next = shortestPath.get(i + 1);
+                    if (n.getTrueNode().getId() == next.getId()) {
+                        normalizedShortestPath.add(n);
+                    } else {
+                        ConditionCfgNode clone = new ConditionCfgNode(((ConditionCfgNode) n).getAst()) {
+                            @Override
+                            public boolean isVisitedTrueBranch() {
+                                return super.isVisitedTrueBranch();
+                            }
+                        };
+                        clone.setContent("!(" + n.getContent() + ")");
+                        clone.setAst(Utils.convertToIAST(clone.getContent()));
+                        normalizedShortestPath.add(clone);
+                    }
+                } else {
+
+                }
+            } else {
+                normalizedShortestPath.add(n);
+            }
+        }
+
+        logger.debug("shortestPath = " + shortestPath);
+        logger.debug("normalizedShortestPath = " + normalizedShortestPath);
+        return normalizedShortestPath;
+    }
+
+    protected TestCase createTestCase(int iteration, ICommonFunctionNode fn, TestCase selectedPrototype) {
+        // create a new test case at each iteration
+        int seed = new Random().nextInt(9999999);
+        String nameofTestcase = AbstractTestCase.removeSpecialCharacter(fn.getSimpleName() + ITestCase.AKA_SIGNAL + seed); // to create unique name temporarily
+
+        TestCase testCase = null;
+        if (fn.isTemplate() || fn instanceof MacroFunctionNode) {
+            String content = Utils.readFileContent(new File(selectedPrototype.getPath()));
+            String newName = nameofTestcase;
+            content = content.replace(selectedPrototype.getName(), nameofTestcase);
+            String newFile = new File(selectedPrototype.getPath()).getParent() + File.separator + newName + ".json";
+            Utils.writeContentToFile(content, newFile);
+            testCase = TestCaseManager.getBasicTestCaseByName(nameofTestcase, new WorkspaceConfig().fromJson().getTestcaseDirectory()
+                    , true);
+            TestCaseManager.nameToBasicTestCaseMap.put(newName, testCase);
+            logger.debug("Load prototype " + selectedPrototype.getPath());
+            logger.debug("Create new test case from prototype: " + newFile);
+        } else
+            testCase = TestCaseManager.createTestCase(nameofTestcase, fn);
+
+        testCase.setCreationDateTime(LocalDateTime.now());
+        String tpFile = fn.getSimpleName()
+                .replace(File.separator, "___")// to avoid the misunderstanding between system separator and its name
+                + ITestCase.AKA_SIGNAL + seed + "_iter_" + iteration;
+        testCase.setTestPathFile(new WorkspaceConfig().fromJson().getTestpathDirectory() + File.separator + tpFile + ".tp");
+        return testCase;
+    }
+
+    protected boolean iterate(int iteration, TestcaseExecution executor, ICommonFunctionNode fn, TestCase selectedPrototype) {
+        boolean isMaximizedCoverage = false;
+
+        TestCase testCase = createTestCase(iteration, fn, selectedPrototype);
+        if (testCase == null)
+            return false;
+        try {
+            this.testCases.add(testCase);
+
+            ICommonFunctionNode sut = testCase.getFunctionNode();
+//            if (!(sut instanceof IFunctionNode))
+//                return false;
+
+            RootDataNode root = testCase.getRootDataNode();
+
+            List<String> additionalHeaders = new ArrayList<>();
+            // generate random value for parameters
+            if (!(sut instanceof ConstructorNode)) {
+                logger.debug("[" + Thread.currentThread().getName() + "] " + "Generate random value for new test case");
+                List<RandomValue> randomValuesForArguments = generateRandomValueForArguments(root, sut, additionalHeaders, selectedPrototype);
+                logger.debug("randomValuesForArguments: " + randomValuesForArguments);
+            }
+
+            // generate random value for instance
+            List<RandomValue> randomValuesForInstance = generateRandomValuesForInstance(root, sut, additionalHeaders);
+            logger.debug("randomValuesForInstance = " + randomValuesForInstance);
+
+            // generate random value for global variables
+            List<RandomValue> randomValuesForGlobalVariables = generateRandomValuesForGlobal(root, sut, additionalHeaders);
+            logger.debug("randomValuesForGlobalVariables = " + randomValuesForGlobalVariables);
+
+            try {
+                logger.debug(new SimpleTreeDisplayer().toString(root));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //
+            String additionalHeadersAll = "";
+            for (String item : additionalHeaders)
+                additionalHeadersAll += item;
+
+            // start
+            AutoGeneratedTestCaseExecTask task = new AutoGeneratedTestCaseExecTask(iteration, executor, testCase, execTasks);
+            execTasks.add(task);
+            task.setAdditionalHeaders(additionalHeadersAll);
+            AkaThread thread = new AkaThread(task);
+            thread.setName(getFunctionExecThread().getFunction().getSimpleName() + "(iteration " + iteration + ")");
+//            AkaThreadManager.autoTestdataGenForFunctionThreadPool.execute(thread);
+            AkaThreadManager.akaThreadList.add(thread);
+            functionExecThread.getTestCaseExecTask().add(task);
+
+            //
+            tasks.add(Executors.callable(task));
+
+            outputs.add(testCase);
+
+        } catch (MaximumCoverageException e) {
+            isMaximizedCoverage = true;
+            logger.debug("[" + Thread.currentThread().getName() + "] " + "Code coverage has achieved 100%. Terminated!");
+
+        } catch (InterruptedException e) {
+            isMaximizedCoverage = false;
+            testCase.setStatus(TestCase.STATUS_FAILED);
+            outputs.remove(testCase);
+            e.printStackTrace();
+            logger.debug("[" + Thread.currentThread().getName() + "] " + "The thread " + Thread.currentThread().getName() + " is interrupted");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            outputs.remove(testCase);
+            testCase.setStatus(TestCase.STATUS_FAILED);
+            isMaximizedCoverage = false;
+            logger.debug("[" + Thread.currentThread().getName() + "] " + "There is a problem with the current test case. Move to the next iteration.");
+        }
+
+        return isMaximizedCoverage;
+    }
+}

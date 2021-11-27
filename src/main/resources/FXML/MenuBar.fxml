@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.input.KeyCodeCombination?>
+
+<MenuBar fx:id="mMenuBar" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dse.guifx_v3.controllers.main_view.MenuBarController">
+    <Menu fx:id="mfile" text="_File">
+        <Menu fx:id="mNew" mnemonicParsing="false" text="New">
+            <MenuItem fx:id="minewCCPPEnvironment" onAction="#createNewEnvironment" text="C/C++ Environment">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+        </Menu>
+        <!--            <MenuItem fx:id="miOpenProject" mnemonicParsing="false" onAction="#openProject" text="Open Project" />-->
+        <MenuItem fx:id="miOpenEnvironment" mnemonicParsing="false" onAction="#openEnvironment" text="Open Environment">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <Menu fx:id="miRecentEnvironments" mnemonicParsing="false" text="Recent Environments" />
+<!--        <MenuItem fx:id="miSetWorkingDirectory" mnemonicParsing="false" onAction="#setWorkingDirectory" text="Set Working Directory">-->
+<!--            <accelerator>-->
+<!--                <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />-->
+<!--            </accelerator>-->
+<!--        </MenuItem>-->
+        <MenuItem fx:id="miSetZ3Solver" mnemonicParsing="false" onAction="#setZ3Solver" text="Set Z3 SMT-Solver">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miImportTestcases" onAction="#importTestCases" text="Import Testcases" />
+        <MenuItem fx:id="miExit" onAction="#exit" text="Exit">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+    </Menu>
+    <Menu fx:id="mEnvironment" text="_Environment">
+        <MenuItem mnemonicParsing="false" onAction="#incrementalBuild" text="Incremental building">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#updateEnvironment" text="Update Environment">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="U" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#analyzeDependencies" text="Analyze Dependencies">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#instrumentProject" text="Instrument Project">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#showAvailableRegressionScripts" text="Regression Scripts" />
+    </Menu>
+    <Menu fx:id="mEdit" text="E_dit">
+        <MenuItem fx:id="miClean" mnemonicParsing="false" onAction="#cleanTestCases" text="Clean at function level">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miCleanAtSourcecodeFileLevel" mnemonicParsing="false" onAction="#cleanTestCasesAtSourcecodeFileLevel" text="Clean at source code file level">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+    </Menu>
+    <Menu fx:id="mRun" text="_Run">
+        <MenuItem fx:id="miRunWithoutReport" mnemonicParsing="false" onAction="#runAllSelectedTestCasesWithoutReport" text="Execute Without Report">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miRunWithReport" mnemonicParsing="false" onAction="#runAllSelectedTestCasesWithReport" text="Execute and Show Report">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miDebug" mnemonicParsing="false" onAction="#debugTestCase" text="Run With Debugger">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miStopAutomatedTestdataGeneration" mnemonicParsing="false" onAction="#stopAllAutomatedTestdataGenerationThread" text="Stop all automated test data generation threads">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+    </Menu>
+
+    <Menu fx:id="mSetting" text="_Setting">
+        <MenuItem fx:id="miAutomatedTestdataGenerationConfig" onAction="#openAutomatedTestdataGenerationConfig" text="Automated Test data generation config">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miOpenTextEditorConfig" mnemonicParsing="false" onAction="#openTexteditorConfig" text="Text editor">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="T" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+        <MenuItem fx:id="miSetupBoundOfVariableType" onAction="#setupBoundOfVariableType" text="Config bound of variable types">
+            <accelerator>
+                <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+        </MenuItem>
+    </Menu>
+    <!--    <Menu mnemonicParsing="false" text="Edit">-->
+    <!--      <items>-->
+    <!--        <MenuItem fx:id="miClean" mnemonicParsing="false" onAction="#cleanTestCases" text="Clean" />-->
+    <!--      </items>-->
+    <!--    </Menu>-->
+    <Menu fx:id="mView" mnemonicParsing="false" text="_View">
+        <items>
+            <MenuItem fx:id="miViewEnvironment" onAction="#viewEnvironment" text="Environment Report">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="V" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+            <MenuItem fx:id="miViewTestCaseData" onAction="#viewTestCaseData" text="Test Case Data Report">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="T" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+            <MenuItem fx:id="miViewFull" onAction="#viewFullReport" text="Full Report">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="F" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+            <MenuItem fx:id="miViewTestCaseManage" onAction="#viewTestCaseManage" text="Test Case Management Report">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="M" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+            <MenuItem fx:id="miViewCoverage" onAction="#viewCoverage" text="Coverage">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                </accelerator>
+            </MenuItem>
+        </items>
+    </Menu>
+    <!--    <Menu mnemonicParsing="false" text="Help">-->
+    <!--      <items>-->
+    <!--        <MenuItem mnemonicParsing="false" text="About" />-->
+    <!--      </items>-->
+    <!--    </Menu>-->
+</MenuBar>

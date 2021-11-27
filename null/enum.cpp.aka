@@ -1,0 +1,13 @@
+{
+  "NAME_FILE": "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/function1(State,Fruits,int)/x": "f768a4b1a31b9e3a759b10a13c1e97e6",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/function1(State,Fruits,int)": "1e2a5af8552802b82c2b007f5ae75e60",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/main(int,char*[])": "8e327b5e1d88ad44af97f4b4a6196e99",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/Fruits": "ed396471d20d730ce9613a661b641a5f",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/function1(State,Fruits,int)/fruit": "812eed4d2edd62b2f8d16d92a147466a",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/function1(State,Fruits,int)/state": "a50ca532108f78e952fa0be5408940a1",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/main(int,char*[])/argc": "e5d085cee7ced1354fdbcd1ea347c06e",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/main(int,char*[])/args": "fa93fcdde71152ab88d2d81ee4f3624f",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/State": "fa1166d9abc7f7703e9cd5937e7fde82",
+  "/home/zizoz/Documents/akautauto/datatest/hoannv/test_data_hoannv/enum.cpp/\"iostream\"": "bdee703c89c64c546a69ae2d4a9671da"
+}
